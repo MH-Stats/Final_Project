@@ -1,0 +1,168 @@
+---
+title: "Final_Project"
+author: "Mark Heinen"
+format: html
+editor: visual
+editor_options: 
+  chunk_output_type: console
+---
+
+## EDA of Diabetes Health Indicators Dataset
+
+### Data Validation and Cleaning
+
+```{r}
+# Setting up package librarys 
+library(tidyverse)
+```
+
+
+```{r}
+# Reading in CSV file of DHI data
+dhi_data <- read_csv("diabetes_binary_health_indicators_BRFSS2015.csv")
+dhi_data
+```
+
+Creating factor creating function
+
+```{r}
+# Function to change binary variables into factors
+binary_creator <- function(data){
+# Grabbing all binary cols
+binary_cols <- colnames(data)[sapply(data, function(col) all(col %in% c(0, 1)))]
+# Creating Binary cols
+  for(var in colnames(data)){
+    if(var %in% binary_cols){
+      data[[var]] <- factor(data[[var]], levels = c(0,1), labels = c("No", "Yes"))
+    }
+  }
+  return(data)
+}
+# Running function
+dhi_data <- binary_creator(dhi_data)
+
+# Converting other factor variables 
+dhi_data <- dhi_data |>
+  mutate(
+    GenHlth = factor(GenHlth, levels = c(1,2,3,4,5), labels = c("excellent", "very_good", "good", "fair", "poor")),
+    Education = factor(Education, levels = c(1,2,3,4,5,6), labels = c("no_schooling", "1_to_8", "9_to_11", "12_or_GED", "some_college", "college_grad")),
+    Income = factor(Income, levels = c(1,2,3,4,5,6,7,8), labels = c("10k_less", "15k_less", "20k_less", "25k_less", "35k_less", "50k_less", "75k_less", "75k_more"))
+  )
+```
+
+Now I am going to rename a few columns in order to make using them easier in terms of referencing them in the code.
+
+```{r}
+# renaming columns 
+dhi_data <- dhi_data |>
+  rename(
+    "Diabetes" = Diabetes_binary,
+    "HeartDisease" = HeartDiseaseorAttack,
+    "HvyAlch" = HvyAlcoholConsump,
+    "Healthcare" = AnyHealthcare,
+    "NoDoc" = NoDocbcCost,
+  )
+```
+
+Checking for missing values, this should be zero since the dataset being used has already been cleaned.
+
+```{r}
+# grabbing all missing values
+colSums(is.na(dhi_data))
+```
+
+No missing values were found, which was expected.
+
+### Summary Statistics and Graphs
+
+Now we need to create some summary stats and to start we are going to look at the summaries of some numeric variables to start. We will also be doing this while grouping by the Diabetes column as we want to see how these variables impact Diabetes status.
+
+```{r}
+# Creating function to grab numeric summary stats
+numeric_summary <- function(data, group_var = "Diabetes"){
+  # Selecting numeric vars
+  num_vars <- data |>
+    select(where(is.numeric))
+  
+  # Creating empty list
+  num_sum_list <- list()
+  
+  # Looping summary stats 
+  for(num_var in colnames(num_vars)){
+    # Grouping by group_var
+    num_sums <- data |>
+    group_by(across(all_of(group_var)))|>
+    summarize(across(all_of(num_var), .fns = list("mean" = mean, # This will create a named list with .fns
+                                       "median" = median,
+                                       "sd" = sd,
+                                       "IQR" = IQR,
+                                       "min" = min,
+                                       "max" = max),
+                     .names = "{.fn}")) # .fn is function names
+    
+    num_sums <- num_sums |>
+      mutate(variable = num_var)
+    num_sums <- num_sums |> 
+      select(variable, everything())
+  
+    num_sum_list[[num_var]] <- num_sums
+  }
+  return(num_sum_list)
+}
+
+# Running function 
+num_sums <- numeric_summary(dhi_data)
+  
+# Printing columns out
+num_sums
+```
+
+Some interesting findings can be found based off these results. The first being that the mean and median BMI is lower in the No Diabetes group (27.8/27 to 31.9/31), the mean poor mental health days was lower in the No diabetes group (2.98 to 4.46) but the median was zero for both, the mean was also much higher in the yes diabetes group for number of poor physical health days (3.64 to 7.95) but again the medians were not signficanlty different (0 to 1), and finally we find that the mean and median were higher in the yes diabetes group for age (7.81/8 to 9.38/10). This could indicate that the MentHlth and PhysHlth variables have data that is skewed with most individuals having no issues most days, but a few individuals with a lot of negative days. To investiage further we should look at some density plots and some bar plots.
+
+```{r}
+# Creating densityplots while colored by Diabetes status
+ggplot(dhi_data, aes(x = BMI, fill = Diabetes)) +
+  geom_density(alpha=0.3) +
+  ggtitle("BMI by Diabetes Status") +
+  xlab("BMI")
+
+ggplot(dhi_data, aes(x = MentHlth, fill = Diabetes)) +
+  geom_density(alpha=0.3) +
+  ggtitle("Number of Poor Mental Health Days by Diabetes Status") +
+  xlab("Poor Mental Health Days")
+
+ggplot(dhi_data, aes(x = PhysHlth, fill = Diabetes)) +
+  geom_density(alpha=0.3) +
+  ggtitle("Number of Poor Physical Health Days by Diabetes Status") +
+  xlab("Poor Physical Health Days")
+
+ggplot(dhi_data, aes(x = Age, fill = Diabetes)) +
+  geom_density(alpha=0.3) +
+  ggtitle("Age by Diabetes Status") +
+  xlab("Age in Groupings of Five Starting at 18")
+
+# Creating Barplots for MentHlth, PhysHlth, and Age as they are on scales
+ggplot(dhi_data, aes(x = MentHlth)) +
+  geom_bar() +
+  ggtitle("Number of Poor Mental Health Days by Diabetes Status") +
+  xlab("Poor Mental Health Days") +
+  facet_wrap(~Diabetes, scales = "free_y") + # Making graphs the same scale to aid comparison
+  scale_y_continuous(expand = c(0, 0))
+  
+ggplot(dhi_data, aes(x = PhysHlth)) +
+  geom_bar() +
+  ggtitle("Number of Poor Physical Health Days by Diabetes Status") +
+  xlab("Poor Physical Health Days") +
+  facet_wrap(~Diabetes, scales = "free_y") + # Making graphs the same scale to aid comparison
+  scale_y_continuous(expand = c(0, 0))
+
+ggplot(dhi_data, aes(x = Age)) +
+  geom_bar() +
+  ggtitle("Age by Diabetes Status") +
+  xlab("Age in Groupings of Five Starting at 18") +
+  facet_wrap(~Diabetes, scales = "free_y") + # Making graphs the same scale to aid comparison
+  scale_y_continuous(expand = c(0, 0))
+
+```
+
+
