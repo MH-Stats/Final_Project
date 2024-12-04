@@ -16,7 +16,6 @@ editor_options:
 library(tidyverse)
 ```
 
-
 ```{r}
 # Reading in CSV file of DHI data
 dhi_data <- read_csv("diabetes_binary_health_indicators_BRFSS2015.csv")
@@ -28,9 +27,13 @@ Creating factor creating function
 ```{r}
 # Function to change binary variables into factors
 binary_creator <- function(data){
-# Grabbing all binary cols
-binary_cols <- colnames(data)[sapply(data, function(col) all(col %in% c(0, 1)))]
-# Creating Binary cols
+  # Grabbing all binary cols
+  binary_cols <- colnames(data)[sapply(data, function(col) all(col %in% c(0, 1)))]
+
+  # removing sex from binary_cols
+  binary_cols <- setdiff(binary_cols, "Sex")
+
+  # Creating Binary cols
   for(var in colnames(data)){
     if(var %in% binary_cols){
       data[[var]] <- factor(data[[var]], levels = c(0,1), labels = c("No", "Yes"))
@@ -44,6 +47,7 @@ dhi_data <- binary_creator(dhi_data)
 # Converting other factor variables 
 dhi_data <- dhi_data |>
   mutate(
+    Sex = factor(Sex, levels = c(0,1), labels = c("female", "male")),
     GenHlth = factor(GenHlth, levels = c(1,2,3,4,5), labels = c("excellent", "very_good", "good", "fair", "poor")),
     Education = factor(Education, levels = c(1,2,3,4,5,6), labels = c("no_schooling", "1_to_8", "9_to_11", "12_or_GED", "some_college", "college_grad")),
     Income = factor(Income, levels = c(1,2,3,4,5,6,7,8), labels = c("10k_less", "15k_less", "20k_less", "25k_less", "35k_less", "50k_less", "75k_less", "75k_more"))
@@ -165,4 +169,140 @@ ggplot(dhi_data, aes(x = Age)) +
 
 ```
 
+The graphs confirm our (fill out more later)
+
+The next step is going to be to create some contingency tables comparing counts of the variables to the diabetes status, we can make a function that will do this for each variable we have turned into a factor.
+
+```{r}
+# Function to create two way contingency tables
+TwoWayMaker <- function(data, var1 = "Diabetes"){
+  
+  # Selecting factors
+  fct_vars <- data |>
+    select(where(is.factor)) |>
+    select(-all_of(var1))
+  
+  # Creating empty list to store tables
+  fct_list <- list()
+  
+  # create for loop of factor vars
+  for(fct_var in colnames(fct_vars)){
+    
+    #Create contingency tables
+    fct_tables <- table(data[[var1]], data[[fct_var]])
+    
+    # Create proper names for tables
+    dimnames(fct_tables) <- list(Diabetes = levels(data[[var1]]),
+                                 fct_var = levels(data[[fct_var]]))
+    
+    # Store table in list
+    fct_list[[fct_var]] <- fct_tables
+  }
+  return(fct_list)
+}
+
+TwoWayTables <- TwoWayMaker(dhi_data)
+```
+
+I also want to see the tables as proportions, so lets modify the function in order to do so. Of important note I am going to be using margin = 2 to compare across columns, as that will make the data display as the total percent for each level (column in the table) of a factor rather than against the whole dataset. 
+
+```{r}
+# Function to create two way contingency tables
+TwoWayMaker_percent <- function(data, var1 = "Diabetes"){
+  
+  # Selecting factors
+  fct_vars <- data |>
+    select(where(is.factor)) |>
+    select(-all_of(var1))
+  
+  # Creating empty list to store tables
+  fct_list <- list()
+  
+  # create for loop of factor vars
+  for(fct_var in colnames(fct_vars)){
+    
+    #Create contingency tables
+    fct_tables <- table(data[[var1]], data[[fct_var]])
+    
+    # Converting to percents
+    fct_tables <- prop.table(fct_tables, margin = 2) * 100
+    
+    # Create proper names for tables
+    dimnames(fct_tables) <- list(Diabetes = levels(data[[var1]]),
+                                 fct_var = levels(data[[fct_var]]))
+    
+    # Store table in list
+    fct_list[[fct_var]] <- fct_tables
+  }
+  return(fct_list)
+}
+
+TwoWayTables_percent <- TwoWayMaker_percent(dhi_data)
+TwoWayTables_percent
+```
+
+Some notable things can be gleamed from these proportion tables, with HighBP, HighChol, Stroke, HeartDisease, PhysActivity, HvyAlch, DiffWalk, Education, and Income being the most interesting variables. A much higher proportion of individuals with High BP had diabetes than individuals with normal BP (24.45% to 6.04 %), a similar occurrence is seen in individuals with high cholesterol (22.015% to 7.98%), individuals who have had a stroke (31.75% to 13.18%), individuals with heart disease (32.97% to 11.95%), and individuals with difficulty walking (30.74% to 10.53%). Individuals who were physically active in the last 30 days had a lower proportion of diabetes (11.61% to 21.14%), Individuals with higher levels of education had a lower proportion of diabetes (9.69% for college grads to 27.01% for those with no schooling), and individuals with higher incomes had a lower proprtion of diabets (7.96% for those who make 75k or more to 24.28% for those who make less than 10k) 
+
+The most striking variable has to be that individuals with heavy alcohol usage had an over two times lower rate of diabetes than individuals who do not heavily use alcohol (5.84% t0 12.97%), which may indicate that their are some confounding factors in the data. As research has indicated that heavy alcohol usage found to be correlated with Type Two Diabetes, but this could also be due to the limited option of the response as data has also shown moderate alcohol usage is negatively correlated with Type two diabetes.
+
+In order to keep this analysis from getting out of hands I am going to choose only 5 categorical variables to plot (bar plots), as I shall be using those alongside BMI to create a model in another document. The 5 variables I am going to choose are HighBp, HighChol, Stroke, PhysActivity, and HeartDisease. As these are all variables that may be correlated with one another.
+
+```{r}
+# Creating faceit box plots
+ggplot(dhi_data, aes(x = HighBP)) +
+  geom_bar() +
+  ggtitle("BP by Diabetes Status") +
+  xlab("High BP Yes or No") +
+  facet_wrap(~Diabetes, scales = "free_y") + # Making graphs the same scale to aid comparison
+  scale_y_continuous(expand = c(0, 0))
+
+ggplot(dhi_data, aes(x = HighChol)) +
+  geom_bar() +
+  ggtitle("Cholesterol by Diabetes Status") +
+  xlab("High Cholesterol Yes or No") +
+  facet_wrap(~Diabetes, scales = "free_y") + # Making graphs the same scale to aid comparison
+  scale_y_continuous(expand = c(0, 0))
+
+ggplot(dhi_data, aes(x = Stroke)) +
+  geom_bar() +
+  ggtitle("Stroke by Diabetes Status") +
+  xlab("Ever had a stroke Yes or No") +
+  facet_wrap(~Diabetes, scales = "free_y") + # Making graphs the same scale to aid comparison
+  scale_y_continuous(expand = c(0, 0))
+
+ggplot(dhi_data, aes(x = PhysActivity)) +
+  geom_bar() +
+  ggtitle("Physical Activity by Diabetes Status") +
+  xlab("Any Physical Activity in the Last 30 days Yes or No") +
+  facet_wrap(~Diabetes, scales = "free_y") + # Making graphs the same scale to aid comparison
+  scale_y_continuous(expand = c(0, 0))
+
+ggplot(dhi_data, aes(x = HeartDisease)) +
+  geom_bar() +
+  ggtitle("Heart Disease by Diabetes Status") +
+  xlab("Heart Disease Yes or No") +
+  facet_wrap(~Diabetes, scales = "free_y") + # Making graphs the same scale to aid comparison
+  scale_y_continuous(expand = c(0, 0))
+
+
+```
+
+These plots help us visualize the previously discussed proportions we found in the contigency tables, with Physical Activity (Yes) showing to have a higher proportion of No diabetes, while all other variables when present (Yes) are shown to have higher proportions of diabetes.
+
+### Final Step
+
+Our final step is to create a new data set that only contains the relevant variables we will be analyzing in order to trim down on excess variables. This data set will be used within our modeling QMD file.
+
+```{r}
+model_data <- dhi_data |>
+  select(
+    Diabetes, 
+    HighBP,
+    HighChol,
+    BMI,
+    Stroke,
+    PhysActivity,
+    HeartDisease
+    )
+```
 
