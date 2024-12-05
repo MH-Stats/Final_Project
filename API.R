@@ -62,15 +62,9 @@ class_recipe <- recipe(Diabetes ~ HighBP + HighChol + BMI + Stroke + PhysActivit
                        data = dhi_train) |>
   step_dummy(HighBP, HighChol, Stroke, PhysActivity, HeartDisease)
 
-# Setting grid to be used in fits
-class_grid <- grid_regular(cost_complexity(),
-                           tree_depth(),
-                           min_n(),
-                           levels = 5)
-
 # creating model 
-rf_spec <- rand_forest(mtry = 3) |>
-  set_engine("ranger", importance = "impurity") |>
+rf_spec <- rand_forest(trees = 500, mtry = 3, min_n = 10) |>
+  set_engine("ranger", importance = "impurity", splitrule = "gini") |>
   set_mode("classification")
 
 # Creating workflow
@@ -78,28 +72,7 @@ rf_wkflw <- workflow() |>
   add_recipe(class_recipe) |> 
   add_model(rf_spec)
 
-# fitting data with tune_grid and grid_regular
+# fitting data 
 rf_fit <- rf_wkflw |>
-  tune_grid(resamples = dhi_cv,
-            grid = 10,
-            metrics = metric_set(mn_log_loss))
-
-# Grabbing metrics for log loss
-rf_fit |>
-  collect_metrics() |>
-  filter(.metric == "mn_log_loss") |>
-  arrange(mean)
-
-# Grabbing best one
-best_rf_param <- rf_fit |>
-  select_best(metric = "mn_log_loss")
-
-# Using finalize_workflow to create final model
-rf_final <- rf_wkflw |>
-  finalize_workflow(best_rf_param) |>
-  last_fit(dhi_split, metrics = metric_set(mn_log_loss))
-
-# fitting the best model 
-best_overall_model <- rf_wkflw |>
-  finalize_workflow(best_rf_param) |>
   fit(dhi_data)
+
