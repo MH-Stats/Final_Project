@@ -1,0 +1,263 @@
+---
+title: "Modeling of Diabetes Health Indicators"
+format: html
+editor: visual
+editor_options: 
+  chunk_output_type: console
+---
+
+## Purpose of Model
+
+The Purpose of this modeling anlaysis is to use our six choosen predicator variables to find the best model fit that predicates diabetes status. Our metric used to evaluate the models will be log-loss, and the two model types will be  a classification tree and a random forest. Both models will be trained using a 70/30 split with a 5 fold cross-validation. 
+
+```{r}
+# Setting up librarys 
+library(tidymodels)
+library(ranger)
+library(parsnip)
+```
+
+### Classification Tree
+
+The first model we will be creating is a classification tree, which is a logistic regression model commonly used when you have a binary response variable, such as Diabetes status in our case. It is a tree based model meaning that is based upon the a decision tree, which is a representation how different predictor variables can be used to create a prediction of a target value. A classification tree "normally" works by using the most commonly occurring class of observations as the predictions for its regions, and these regions are created by splitting up the predictor space. This allows for numerous predictions to be made . Properly choosing the number of splits is important to control for overfitting (too many splits) and underfitting (too few splits), unfortunately their is no optimal algorithm to choose splits and the quantity must factor in the benefit/cost of increased processing time. Generally you will start with more splits then prune them down in order make sure that the model is not overfitted (aka does not predict well when using unseen data), and in our case we will be using cross-validation to achieve this. Specifically, by splitting our data up into different folds we can test how pruning impacts predictions when tested on various portions of the data. 
+
+Now that we have that explanation of what a classification tree is, we need to begin the process of building the relevant recipes, specs, and workflow. Before that we should create our CV split, and then subset our data by 20% in order to save on processing time. Also of note as we are using a highly imbalanced target variable it will be a good idea to stratify our sample and CV splits.
+
+```{r}
+# Data split and 5 fold CV (Will be using this later to get the best possible model)
+dhi_split <- initial_split(model_data, prop = 0.7, strata = Diabetes)
+dhi_train <- training(dhi_split)
+dhi_test <- testing(dhi_split)
+dhi_cv <- vfold_cv(dhi_train, 5, strata = Diabetes)
+
+# Creating sample of data
+set.seed(113)
+subset_data <- model_data |>
+  slice_sample(prop = .2)
+
+# Creating sample split and 5 fold CV using the 
+sub_split <- initial_split(subset_data, prop = 0.7, strata = Diabetes)
+sub_train <- training(sub_split)
+sub_test <- testing(sub_split)
+sub_cv <- vfold_cv(sub_train, 5, strata = Diabetes)
+```
+
+Now will be to create our recipes that will be used by our model. 
+
+```{r}
+# Recipe for non subset data
+class_recipe <- recipe(Diabetes ~ HighBP + HighChol + BMI + Stroke + PhysActivity + HeartDisease,
+                     data = dhi_train) |>
+  step_dummy(HighBP, HighChol, Stroke, PhysActivity, HeartDisease) 
+```
+
+```{r}
+# Recipe for subset data
+subc_recipe <- recipe(Diabetes ~ HighBP + HighChol + BMI + Stroke + PhysActivity + HeartDisease,
+                     data = sub_train) |>
+  step_dummy(HighBP, HighChol, Stroke, PhysActivity, HeartDisease) 
+```
+
+After that we need to create the proper spec for the classification tree model by using set_engine and set_mode. Then we will combine the recipe and spec (model) to create our workflow.
+
+```{r}
+# creating classification tree model spec
+class_spec <- decision_tree(cost_complexity = tune(),
+                            tree_depth = tune(),
+                            min_n = tune()) |>
+  set_mode("classification") |>
+  set_engine("rpart")
+
+# Creating workflow for non-subsetted data
+class_wkflw <- workflow() |>
+  add_recipe(class_recipe) |>
+  add_model(class_spec)
+
+# Creating workflopw for subsetted data
+subc_wkflw <- workflow() |>
+  add_recipe(subc_recipe) |>
+  add_model(class_spec)
+```
+
+Now that we have created our handy workflow from tidymodels we need to fit our model to the training data using cross-validation. Before we can fit it we need to specify our grid using tune_grid, to make sure our models use our prefered metric log loss (as wells as tune the model), as well as to use grid_regular to specify the cv fold.
+
+```{r}
+# Setting grid to be used in fits
+class_grid <- grid_regular(cost_complexity(),
+                           tree_depth(),
+                           min_n(),
+                           levels = 5)
+```
+
+```{r}
+# fitting the model for non-subsetted data
+class_fit <- class_wkflw |>
+  tune_grid(resamples = dhi_cv,
+            grid = class_grid,
+            metrics = metric_set(mn_log_loss))
+
+# Collecting metrics to find best fit
+class_fit |>
+  collect_metrics() |>
+  filter(.metric == "mn_log_loss") |>
+  arrange(mean)
+
+# Grabbing best model
+best_class_fit <- class_fit |>
+  select_best(metric = "mn_log_loss")
+
+# Final fit
+best_class_final <- class_wkflw |>
+  finalize_workflow(best_class_fit) |>
+  last_fit(dhi_split, metrics = metric_set(mn_log_loss))
+best_class_final
+
+```
+
+```{r}
+# fitting the model for subsetted data
+subc_fit <- subc_wkflw |>
+  tune_grid(resamples = sub_cv,
+            grid = class_grid,
+            metrics = metric_set(mn_log_loss))
+
+# Collecting metrics to find best fit
+subc_fit |>
+  collect_metrics() |>
+  filter(.metric == "mn_log_loss") |>
+  arrange(mean)
+
+# Grabbing best model
+best_subc_param <- subc_fit |>
+  select_best(metric = "mn_log_loss")
+
+# Final fit
+subc_final_fit <- subc_wkflw |>
+  finalize_workflow(best_subc_param) |>
+  last_fit(sub_split, metrics = metric_set(mn_log_loss))
+```
+
+Now that we have found out best fit we should visualize it using rpart.plot.
+
+```{r}
+# loading in rpart.plot
+library(rpart.plot)
+
+# Creating plot of classification tree 
+best_class_final |>
+  extract_fit_engine() |>
+  rpart.plot(roundint = FALSE, cex = .6)
+```
+
+Based off this plot we can tell that HighBP is the most important predictor as it is the variable used to start the decision process, with a BMI by the next most important node.
+
+### Random Forest 
+
+The next model we will be creating is a Random Forest model which is similar to the classification tree, in that the model builds a number of splits of predictors to find the best model, but instead of using the most common class of observation it instead uses a random sample of the predictors. This random sample is represented by mtry, and a fresh sample of the predictors is taken every time the tree makes a split. Another big difference is that similar to a bagged tree the model also uses bootstrapping to aggregate results from various tree to make a final prediction, but as it does not use all predictor variables every time it has the potential to reduce the risk of overfitting the model (bagged trees are more correlated, due to being influenced by strong predictors). The random forest model is less prone to over fitting than the classification tree model, and can potentially achieve greater accuracy due to this than a classification tree.  
+
+```{r}
+# creating model 
+rf_spec <- rand_forest(mtry = tune()) |>
+  set_engine("ranger", importance = "impurity") |>
+  set_mode("classification")
+
+# Creating non-subsetted workflow
+rf_wkflw <- workflow() |>
+  add_recipe(class_recipe) |> # same recipe from classification tree will work here
+  add_model(rf_spec)
+
+# Creating subsetted workflow
+subrf_wkflw <- workflow() |>
+  add_recipe(subc_recipe) |> # same recipe from classification tree will work here
+  add_model(rf_spec)
+
+```
+
+```{r}
+# fitting non-subsetted data with tune_grid and grid_regular
+rf_fit <- rf_wkflw |>
+  tune_grid(resamples = dhi_cv,
+             grid = 10,
+             metrics = metric_set(mn_log_loss))
+
+# Grabbing metrics for log loss
+rf_fit |>
+  collect_metrics() |>
+  filter(.metric == "mn_log_loss") |>
+  arrange(mean)
+
+# Grabbing best one
+best_rf_param <- rf_fit |>
+  select_best(metric = "mn_log_loss")
+
+# Using finalize_workflow to create final model
+rf_final <- rf_wkflw |>
+  finalize_workflow(best_rf_param) |>
+  last_fit(dhi_split, metrics = metric_set(mn_log_loss))
+```
+
+```{r}
+# fitting subsetted data with tune_grid and grid_regular
+subrf_fit <- subrf_wkflw |>
+  tune_grid(resamples = sub_cv,
+             grid = 10,
+             metrics = metric_set(mn_log_loss))
+
+# Grabbing metrics for log loss
+subrf_fit |>
+  collect_metrics() |>
+  filter(.metric == "mn_log_loss") |>
+  arrange(mean)
+
+# Grabbing best one
+best_subrf_param <- subrf_fit |>
+  select_best(metric = "mn_log_loss")
+
+# Using finalize_workflow to create final model
+subrf_final <- subrf_wkflw |>
+  finalize_workflow(best_subrf_param) |>
+  last_fit(sub_split, metrics = metric_set(mn_log_loss))
+```
+
+Now that we have created out final fit we should go ahead and plot the data, and to do so we will create a variable importance plot (VIP). This will allow us to visualize the most important variables for our model.
+
+```{r}
+# Extracting fit using extract_fit_engine
+rf_final_model <- extract_fit_engine(rf_final)
+
+# Creating VIP plot
+tibble(term = names(rf_final_model$variable.importance),
+       value = rf_final_model$variable.importance) |>
+  arrange(value) |>
+  mutate(term = factor(term, levels = term)) |>
+  ggplot(aes(x = term, y = value)) +
+  geom_bar(stat ="identity") +
+  coord_flip()
+```
+
+As we can see based off this model once again a yes status to HighBP and BMI are the most importance predictors for diabetes status, with a yes status to HeartDisease and HighChol also being important for the model. PhysActivity yes status and stroke yes status do not appear to have a high level of importance in this model.
+
+### Selecting and fitting the Best Model
+
+Now that we have created and selected the best models we should compare the metrics in order to choose the best one that will be used on the whole data set.
+
+```{r}
+# Metrics for Classification Tree Model
+best_class_final |>
+  collect_metrics()
+
+# Metrics for Random Forest Model
+rf_final |>
+  collect_metrics()
+```
+
+Based off these results the Random Forest Model is the best model as it has the lowest log loss at 0.341 compared to 0.350 for the classification tree model. This was expected as generally speaking random forest models can be expected to have a higher accuracy than a classification tree. The final step now is to take the model and fit it to the whole data set. 
+
+```{r}
+# fitting the best model 
+best_overall_model <- rf_wkflw |>
+  finalize_workflow(best_rf_param) |>
+  fit(dhi_data)
+best_overall_model
+```
+
