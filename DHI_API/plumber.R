@@ -1,3 +1,11 @@
+#
+# This is a Plumber API. You can run the API by clicking
+# the 'Run API' button above.
+#
+# Find out more about building APIs with Plumber here:
+#
+#    https://www.rplumber.io/
+
 # Loading in plumber package to create API
 library(plumber)
 # loading in other libraries
@@ -8,7 +16,7 @@ library(parsnip)
 library(rpart.plot)
 
 # Reading in Data
-dhi_data <- read_csv("diabetes_binary_health_indicators_BRFSS2015.csv")
+dhi_data <- read_csv("../diabetes_binary_health_indicators_BRFSS2015.csv")
 dhi_data
 
 # Function to change binary variables into factors
@@ -76,17 +84,71 @@ rf_wkflw <- workflow() |>
 rf_fit <- rf_wkflw |>
   fit(dhi_data)
 
-# Creating prediction data frame
-inputs <- data.frame(
-  HighBP = factor(HighBP, levels = c("No", "Yes")),
-  HighChol = factor(HighChol, levels = c("No", "Yes")),
-  BMI = as.numeric(BMI),
-  Stroke = factor(Stroke, levels = c("No", "Yes")),
-  PhysActivity = factor(PhysActivity, levels = c("No", "Yes")),
-  HeartDisease = factor(HeartDisease, levels = c("No", "Yes"))
-)
 
-# Making predictions
-rf_prediction <- predictions(rf_fit, new_data = input_data)
-print(rf_prediciton)
 
+#* @apiTitle Plumber Example API
+#* @apiDescription Plumber example description.
+
+#* Diabetes Prediction API
+#* Accepts inputs and predicts the likelihood of diabetes
+#* @param HighBP Binary variable ("Yes" or "No")
+#* @param HighChol Binary variable ("Yes" or "No")
+#* @param BMI Numeric variable (e.g., 35.5)
+#* @param Stroke Binary variable ("Yes" or "No")
+#* @param PhysActivity Binary variable ("Yes" or "No")
+#* @param HeartDisease Binary variable ("Yes" or "No")
+#* @post /predict
+function(HighBP, HighChol, BMI, Stroke, PhysActivity, HeartDisease) {
+  # Convert inputs into a data frame
+  input <- data.frame(
+    HighBP = factor(HighBP, levels = c("No", "Yes")),
+    HighChol = factor(HighChol, levels = c("No", "Yes")),
+    BMI = as.numeric(BMI),
+    Stroke = factor(Stroke, levels = c("No", "Yes")),
+    PhysActivity = factor(PhysActivity, levels = c("No", "Yes")),
+    HeartDisease = factor(HeartDisease, levels = c("No", "Yes"))
+  )
+  
+  # Validate inputs
+  if (any(is.na(input))) {
+    return(list(error = "Invalid input. Please ensure all values are provided and correctly formatted."))
+  }
+  
+  # Make prediction
+  prediction <- predict(rf_fit, new_data = input)
+  
+  # Return the prediction
+  list(prediction = prediction$.pred_class)
+}
+
+
+#* Echo back the input
+#* @param msg The message to echo
+#* @get /echo
+function(msg = "") {
+    list(msg = paste0("The message is: '", msg, "'"))
+}
+
+#* Plot a histogram
+#* @serializer png
+#* @get /plot
+function() {
+    rand <- rnorm(100)
+    hist(rand)
+}
+
+#* Return the sum of two numbers
+#* @param a The first number to add
+#* @param b The second number to add
+#* @post /sum
+function(a, b) {
+    as.numeric(a) + as.numeric(b)
+}
+
+# Programmatically alter your API
+#* @plumber
+function(pr) {
+    pr %>%
+        # Overwrite the default serializer to return unboxed JSON
+        pr_set_serializer(serializer_unboxed_json())
+}
