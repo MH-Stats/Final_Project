@@ -18,7 +18,7 @@ library(tidyverse)
 library(tidymodels)
 library(ranger)
 library(parsnip)
-library(readr)
+library(readr) # rendering was having issues with read_csv when linked thought this may help
 ```
 
 ```{r}
