@@ -135,7 +135,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <section id="purpose-of-model" class="level2">
 <h2 class="anchored" data-anchor-id="purpose-of-model">Purpose of Model</h2>
-<p>The Purpose of this modeling anlaysis is to use our six choosen predicator variables to find the best model fit that predicates diabetes status. Our metric used to evaluate the models will be log-loss, and the two model types will be a classification tree and a random forest. Both models will be trained using a 70/30 split with a 5 fold cross-validation.</p>
+<p>The Purpose of this modeling analysis is to use our six choosen predictor variables to find the best model fit that predicates diabetes status. Our metric used to evaluate the models will be log-loss, and the two model types will be a classification tree and a random forest. Both models will be trained using a 70/30 split with a 5 fold cross-validation.</p>
 <section id="reading-in-data" class="level3">
 <h3 class="anchored" data-anchor-id="reading-in-data">Reading in Data</h3>
 <div class="cell">
@@ -169,11 +169,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 ✖ dplyr::lag()      masks stats::lag()
 ✖ yardstick::spec() masks readr::spec()
 ✖ recipes::step()   masks stats::step()
-• Learn how to get started at https://www.tidymodels.org/start/</code></pre>
+• Use suppressPackageStartupMessages() to eliminate package startup messages</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ranger)</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(parsnip)</span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readr) <span class="co"># rendering was having issues with read_csv when linked thought this may help</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Reading in CSV file of DHI data</span></span>
@@ -248,13 +248,13 @@ dbl (22): Diabetes_binary, HighBP, HighChol, CholCheck, BMI, Smoker, Stroke,...
 <span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"HeartDisease"</span> <span class="ot">=</span> HeartDiseaseorAttack,</span>
 <span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">"HvyAlch"</span> <span class="ot">=</span> HvyAlcoholConsump,</span>
 <span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Healthcare"</span> <span class="ot">=</span> AnyHealthcare,</span>
-<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>    <span class="st">"NoDoc"</span> <span class="ot">=</span> NoDocbcCost,</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>    <span class="st">"NoDoc"</span> <span class="ot">=</span> NoDocbcCost</span>
 <span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="classification-tree" class="level3">
 <h3 class="anchored" data-anchor-id="classification-tree">Classification Tree</h3>
-<p>The first model we will be creating is a classification tree, which is a logistic regression model commonly used when you have a binary response variable, such as Diabetes status in our case. It is a tree based model meaning that is based upon the a decision tree, which is a representation how different predictor variables can be used to create a prediction of a target value. A classification tree “normally” works by using the most commonly occurring class of observations as the predictions for its regions, and these regions are created by splitting up the predictor space. This allows for numerous predictions to be made . Properly choosing the number of splits is important to control for overfitting (too many splits) and underfitting (too few splits), unfortunately their is no optimal algorithm to choose splits and the quantity must factor in the benefit/cost of increased processing time. Generally you will start with more splits then prune them down in order make sure that the model is not overfitted (aka does not predict well when using unseen data), and in our case we will be using cross-validation to achieve this. Specifically, by splitting our data up into different folds we can test how pruning impacts predictions when tested on various portions of the data.</p>
+<p>The first model we will be creating is a classification tree, which is a logistic regression model commonly used when you have a binary response variable, such as Diabetes status in our case. It is a tree based model meaning that is based upon the a decision tree, which is a representation how different predictor variables can be used to create a prediction of a target value. A classification tree “normally” works by using the most commonly occurring class of observations as the predictions for its regions, and these regions are created by splitting up the predictor space. Properly choosing the number of splits is important to control for overfitting (too many splits) and underfitting (too few splits), unfortunately their is no optimal algorithm to choose splits and the quantity must factor in the benefit/cost of increased processing time. Generally you will start with more splits then prune them down in order make sure that the model is not overfitted (aka does not predict well when using unseen data), and in our case we will be using cross-validation to achieve this. Specifically, by splitting our data up into different folds we can test how pruning impacts predictions when tested on various portions of the data.</p>
 <p>Now that we have that explanation of what a classification tree is, we need to begin the process of building the relevant recipes, specs, and workflow. Before that we should create our CV split, and then subset our data by 20% in order to save on processing time. Also of note as we are using a highly imbalanced target variable it will be a good idea to stratify our sample and CV splits.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Data split and 5 fold CV (Will be using this later to get the best possible model)</span></span>
@@ -308,16 +308,16 @@ dbl (22): Diabetes_binary, HighBP, HighChol, CholCheck, BMI, Smoker, Stroke,...
 <pre><code># A tibble: 125 × 9
    cost_complexity tree_depth min_n .metric     .estimator  mean     n std_err
              &lt;dbl&gt;      &lt;int&gt; &lt;int&gt; &lt;chr&gt;       &lt;chr&gt;      &lt;dbl&gt; &lt;int&gt;   &lt;dbl&gt;
- 1    0.0000000001         11    30 mn_log_loss binary     0.345     5 0.00107
- 2    0.0000000178         11    30 mn_log_loss binary     0.345     5 0.00107
- 3    0.00000316           11    30 mn_log_loss binary     0.345     5 0.00107
- 4    0.0000000001         15    30 mn_log_loss binary     0.345     5 0.00107
- 5    0.0000000178         15    30 mn_log_loss binary     0.345     5 0.00107
- 6    0.00000316           15    30 mn_log_loss binary     0.345     5 0.00107
- 7    0.0000000001         11    21 mn_log_loss binary     0.345     5 0.00108
- 8    0.0000000178         11    21 mn_log_loss binary     0.345     5 0.00108
- 9    0.00000316           11    21 mn_log_loss binary     0.345     5 0.00108
-10    0.0000000001         15    21 mn_log_loss binary     0.345     5 0.00109
+ 1    0.0000000001          8     2 mn_log_loss binary     0.344     5 0.00135
+ 2    0.0000000178          8     2 mn_log_loss binary     0.344     5 0.00135
+ 3    0.00000316            8     2 mn_log_loss binary     0.344     5 0.00135
+ 4    0.0000000001          8    11 mn_log_loss binary     0.346     5 0.00183
+ 5    0.0000000178          8    11 mn_log_loss binary     0.346     5 0.00183
+ 6    0.00000316            8    11 mn_log_loss binary     0.346     5 0.00183
+ 7    0.0000000001          8    21 mn_log_loss binary     0.346     5 0.00142
+ 8    0.0000000178          8    21 mn_log_loss binary     0.346     5 0.00142
+ 9    0.00000316            8    21 mn_log_loss binary     0.346     5 0.00142
+10    0.0000000001         11    30 mn_log_loss binary     0.347     5 0.00139
 # ℹ 115 more rows
 # ℹ 1 more variable: .config &lt;chr&gt;</code></pre>
 </div>
@@ -359,11 +359,11 @@ dbl (22): Diabetes_binary, HighBP, HighChol, CholCheck, BMI, Smoker, Stroke,...
 </div>
 </div>
 </div>
-<p>Based off this plot we can tell that HighBP is the most important predictor as it is the variable used to start the decision process, with a BMI by the next most important node.</p>
+<p>Based off this plot we can tell that HighBP is the most important predictor as it is the variable used to start the decision process, with BMI being the next most important node.</p>
 </section>
 <section id="random-forest" class="level3">
 <h3 class="anchored" data-anchor-id="random-forest">Random Forest</h3>
-<p>The next model we will be creating is a Random Forest model which is similar to the classification tree, in that the model builds a number of splits of predictors to find the best model, but instead of using the most common class of observation it instead uses a random sample of the predictors. This random sample is represented by mtry, and a fresh sample of the predictors is taken every time the tree makes a split. Another big difference is that similar to a bagged tree the model also uses bootstrapping to aggregate results from various tree to make a final prediction, but as it does not use all predictor variables every time it has the potential to reduce the risk of overfitting the model (bagged trees are more correlated, due to being influenced by strong predictors). The random forest model is less prone to over fitting than the classification tree model, and can potentially achieve greater accuracy due to this than a classification tree.</p>
+<p>The next model we will be creating is a Random Forest model which is similar to the classification tree, in that the model builds a number of splits of the predictors to find the best model, but instead of using the most common class of observation it instead uses a random sample of the predictors. This random sample is represented by mtry, and a fresh sample of the predictors is taken every time the tree makes a split. Another big difference is that similar to a bagged tree the model also uses bootstrapping to aggregate results from various tree to make a final prediction, but as it does not use all predictor variables every time it has the potential to reduce the risk of overfitting the model (bagged trees are more correlated, due to being influenced by strong predictors). The random forest model is less prone to over fitting than the classification tree model, and can potentially achieve greater accuracy due to this than a classification tree.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># creating model </span></span>
 <span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>rf_spec <span class="ot">&lt;-</span> <span class="fu">rand_forest</span>(<span class="at">mtry =</span> <span class="fu">tune</span>()) <span class="sc">|&gt;</span></span>
@@ -393,12 +393,12 @@ dbl (22): Diabetes_binary, HighBP, HighChol, CholCheck, BMI, Smoker, Stroke,...
 <pre><code># A tibble: 6 × 7
    mtry .metric     .estimator  mean     n  std_err .config             
   &lt;int&gt; &lt;chr&gt;       &lt;chr&gt;      &lt;dbl&gt; &lt;int&gt;    &lt;dbl&gt; &lt;chr&gt;               
-1     3 mn_log_loss binary     0.338     5 0.000566 Preprocessor1_Model3
-2     4 mn_log_loss binary     0.338     5 0.000538 Preprocessor1_Model1
-3     2 mn_log_loss binary     0.339     5 0.000527 Preprocessor1_Model4
-4     5 mn_log_loss binary     0.339     5 0.000550 Preprocessor1_Model5
-5     6 mn_log_loss binary     0.349     5 0.00215  Preprocessor1_Model2
-6     1 mn_log_loss binary     0.350     5 0.000414 Preprocessor1_Model6</code></pre>
+1     3 mn_log_loss binary     0.338     5 0.000664 Preprocessor1_Model2
+2     4 mn_log_loss binary     0.338     5 0.000659 Preprocessor1_Model1
+3     2 mn_log_loss binary     0.339     5 0.000624 Preprocessor1_Model5
+4     5 mn_log_loss binary     0.340     5 0.000719 Preprocessor1_Model6
+5     6 mn_log_loss binary     0.348     5 0.00162  Preprocessor1_Model3
+6     1 mn_log_loss binary     0.351     5 0.000343 Preprocessor1_Model4</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Grabbing best one</span></span>
 <span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>best_rf_param <span class="ot">&lt;-</span> rf_fit <span class="sc">|&gt;</span></span>
@@ -430,7 +430,7 @@ dbl (22): Diabetes_binary, HighBP, HighChol, CholCheck, BMI, Smoker, Stroke,...
 </div>
 </div>
 </div>
-<p>As we can see based off this model once again a yes status to HighBP and BMI are the most importance predictors for diabetes status, with a yes status to HeartDisease and HighChol also being important for the model. PhysActivity yes status and stroke yes status do not appear to have a high level of importance in this model.</p>
+<p>As we can see based off this model once again a yes status to HighBP and BMI are the most important predictors for diabetes status, with a yes status to HeartDisease and HighChol also being important for the model. PhysActivity yes status and stroke yes status do not appear to have a high level of importance in this model.</p>
 </section>
 <section id="selecting-and-fitting-the-best-model" class="level3">
 <h3 class="anchored" data-anchor-id="selecting-and-fitting-the-best-model">Selecting and fitting the Best Model</h3>
@@ -443,7 +443,7 @@ dbl (22): Diabetes_binary, HighBP, HighChol, CholCheck, BMI, Smoker, Stroke,...
 <pre><code># A tibble: 1 × 4
   .metric     .estimator .estimate .config             
   &lt;chr&gt;       &lt;chr&gt;          &lt;dbl&gt; &lt;chr&gt;               
-1 mn_log_loss binary         0.344 Preprocessor1_Model1</code></pre>
+1 mn_log_loss binary         0.349 Preprocessor1_Model1</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Metrics for Random Forest Model</span></span>
 <span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>rf_final <span class="sc">|&gt;</span></span>
@@ -455,7 +455,7 @@ dbl (22): Diabetes_binary, HighBP, HighChol, CholCheck, BMI, Smoker, Stroke,...
 1 mn_log_loss binary         0.339 Preprocessor1_Model1</code></pre>
 </div>
 </div>
-<p>Based off these results the Random Forest Model is the best model as it has the lowest log loss at 0.341 compared to 0.350 for the classification tree model. This was expected as generally speaking random forest models can be expected to have a higher accuracy than a classification tree. The final step now is to take the model and fit it to the whole data set.</p>
+<p>Based off these results the Random Forest Model is the best model as it has the lower log loss out of the two models. This was expected as generally speaking random forest models can be expected to have a higher accuracy than a classification tree. The final step now is to take the model and fit it to the whole data set.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="co"># fitting the best model </span></span>
 <span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>best_overall_model <span class="ot">&lt;-</span> rf_wkflw <span class="sc">|&gt;</span></span>
@@ -486,9 +486,10 @@ Mtry:                             3
 Target node size:                 10 
 Variable importance mode:         impurity 
 Splitrule:                        gini 
-OOB prediction error (Brier s.):  0.102863 </code></pre>
+OOB prediction error (Brier s.):  0.1028644 </code></pre>
 </div>
 </div>
+<p>Now we have the knowledge of which model is the best we can use this to create our API, as we will be replicating this process and creating an interactive medium to create predictions of diabetes status.</p>
 
 
 </section>

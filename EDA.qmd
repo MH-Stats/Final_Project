@@ -9,6 +9,10 @@ editor_options:
 
 ## EDA of Diabetes Health Indicators Dataset
 
+The purpose of this document is to perform exploratory data analysis of the Diabetes Health Indicators Dataset. The Health Indicators Dataset contains content from the The 2015 Behavioral Risk Factor Surveillance System (BRFSS) telephone survey, which is a national CDC ran survey used to collect data on human health behavior and chronic conditions. The content from the survey has been choosen with the specific purpose of analyzing factors related to diabetes.
+
+Our first steps in analyzing the data will be to read in the document, validate the data, then clean the data. After that we will create numeric and categorical summaries as well as plots of all the variables. This will hopefully help us decide which variables may be important in determining whether someone may have diabetes (or risk of developing).
+
 ### Data Validation and Cleaning
 
 ```{r}
@@ -22,7 +26,7 @@ dhi_data <- read_csv("diabetes_binary_health_indicators_BRFSS2015.csv")
 dhi_data
 ```
 
-Creating factor creating function
+Creating a function to speed up the process of converting our binary variables into factors, as R tends to run better when using factors for them.
 
 ```{r}
 # Function to change binary variables into factors
@@ -64,7 +68,7 @@ dhi_data <- dhi_data |>
     "HeartDisease" = HeartDiseaseorAttack,
     "HvyAlch" = HvyAlcoholConsump,
     "Healthcare" = AnyHealthcare,
-    "NoDoc" = NoDocbcCost,
+    "NoDoc" = NoDocbcCost
   )
 ```
 
@@ -79,7 +83,7 @@ No missing values were found, which was expected.
 
 ### Summary Statistics and Graphs
 
-Now we need to create some summary stats and to start we are going to look at the summaries of some numeric variables to start. We will also be doing this while grouping by the Diabetes column as we want to see how these variables impact Diabetes status.
+Now we need to create some summary stats and to start we are going to look at the summaries of some numeric variables. We will also be doing this while grouping by the Diabetes column as we want to see how these variables impact Diabetes status.
 
 ```{r}
 # Creating function to grab numeric summary stats
@@ -121,7 +125,7 @@ num_sums <- numeric_summary(dhi_data)
 num_sums
 ```
 
-Some interesting findings can be found based off these results. The first being that the mean and median BMI is lower in the No Diabetes group (27.8/27 to 31.9/31), the mean poor mental health days was lower in the No diabetes group (2.98 to 4.46) but the median was zero for both, the mean was also much higher in the yes diabetes group for number of poor physical health days (3.64 to 7.95) but again the medians were not signficanlty different (0 to 1), and finally we find that the mean and median were higher in the yes diabetes group for age (7.81/8 to 9.38/10). This could indicate that the MentHlth and PhysHlth variables have data that is skewed with most individuals having no issues most days, but a few individuals with a lot of negative days. To investiage further we should look at some density plots and some bar plots.
+Some interesting findings can be found based off these results. The first being that the mean and median BMI is lower in the No Diabetes group (27.8/27 to 31.9/31), the mean poor mental health days was lower in the No diabetes group (2.98 to 4.46) but the median was zero for both, the mean was also much higher in the yes diabetes group for number of poor physical health days (3.64 to 7.95) but again the medians were not significantly different (0 to 1), and finally we find that the mean and median were higher in the yes diabetes group for age (7.81/8 to 9.38/10). This could indicate that the MentHlth and PhysHlth variables have data that is skewed with most individuals having no issues most days, but a few individuals with a lot of negative days. To investigate further we should look at some density plots and some bar plots.
 
 ```{r}
 # Creating densityplots while colored by Diabetes status
@@ -169,7 +173,7 @@ ggplot(dhi_data, aes(x = Age)) +
 
 ```
 
-The graphs confirm our (fill out more later)
+The graphs confirm that the distribution of diabetes status is not flat across the numeric variables, meaning that they may have some influence on predicting whether or not someone will have diabetes. It also supported the idea that the data is not uniformally distributed with variables, such as PhysHlth showcasing how most individuals have few or zero poor physical health days, but that 30 poor physical health days is the next most frequent response. The density plot for BMI is also quite interesting as it shows that the distribution for BMI is follows a similar shape between the no and yes groups, but that the Yes group is further to the right than the NO group. Indicating that people with Diabetes are more likely to have higher BMIs.
 
 The next step is going to be to create some contingency tables comparing counts of the variables to the diabetes status, we can make a function that will do this for each variable we have turned into a factor.
 
@@ -243,9 +247,9 @@ TwoWayTables_percent
 
 Some notable things can be gleamed from these proportion tables, with HighBP, HighChol, Stroke, HeartDisease, PhysActivity, HvyAlch, DiffWalk, Education, and Income being the most interesting variables. A much higher proportion of individuals with High BP had diabetes than individuals with normal BP (24.45% to 6.04 %), a similar occurrence is seen in individuals with high cholesterol (22.015% to 7.98%), individuals who have had a stroke (31.75% to 13.18%), individuals with heart disease (32.97% to 11.95%), and individuals with difficulty walking (30.74% to 10.53%). Individuals who were physically active in the last 30 days had a lower proportion of diabetes (11.61% to 21.14%), Individuals with higher levels of education had a lower proportion of diabetes (9.69% for college grads to 27.01% for those with no schooling), and individuals with higher incomes had a lower proprtion of diabets (7.96% for those who make 75k or more to 24.28% for those who make less than 10k) 
 
-The most striking variable has to be that individuals with heavy alcohol usage had an over two times lower rate of diabetes than individuals who do not heavily use alcohol (5.84% t0 12.97%), which may indicate that their are some confounding factors in the data. As research has indicated that heavy alcohol usage found to be correlated with Type Two Diabetes, but this could also be due to the limited option of the response as data has also shown moderate alcohol usage is negatively correlated with Type two diabetes.
+The most striking variable has to be that individuals with heavy alcohol usage had an over two times lower rate of diabetes than individuals who do not heavily use alcohol (5.84% to 12.97%), which may indicate that their are some confounding factors in the data. As research has indicated that heavy alcohol usage was found to be correlated with Type Two Diabetes, but this could also be due to the limited options to the response (only >14 or <14 drinks per week), as data has also shown moderate alcohol usage is negatively correlated with Type two diabetes.
 
-In order to keep this analysis from getting out of hands I am going to choose only 5 categorical variables to plot (bar plots), as I shall be using those alongside BMI to create a model in another document. The 5 variables I am going to choose are HighBp, HighChol, Stroke, PhysActivity, and HeartDisease. As these are all variables that may be correlated with one another.
+In order to keep this analysis from getting out of hands I am going to choose only 5 categorical variables to plot (bar plots), as I shall be using those alongside BMI to create a model in another document. The 5 variables I am going to choose are HighBp, HighChol, Stroke, PhysActivity, and HeartDisease. As these are all variables that are likely to have an influence on diabets status.
 
 ```{r}
 # Creating faceit box plots
@@ -287,7 +291,7 @@ ggplot(dhi_data, aes(x = HeartDisease)) +
 
 ```
 
-These plots help us visualize the previously discussed proportions we found in the contigency tables, with Physical Activity (Yes) showing to have a higher proportion of No diabetes, while all other variables when present (Yes) are shown to have higher proportions of diabetes.
+These plots help us visualize the previously discussed proportions we found in the contingency tables, with Physical Activity (Yes) showing to have a higher proportion of No diabetes, while all other variables with a status (Yes) are shown to have higher proportions of diabetes. This indicates that these variables are likely to play an important part in predicting whether or not we should expect a yes or no diabetes status.
 
 ## Link to Modeling QMD
 
