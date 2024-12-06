@@ -289,20 +289,7 @@ ggplot(dhi_data, aes(x = HeartDisease)) +
 
 These plots help us visualize the previously discussed proportions we found in the contigency tables, with Physical Activity (Yes) showing to have a higher proportion of No diabetes, while all other variables when present (Yes) are shown to have higher proportions of diabetes.
 
-### Final Step
+## Link to Modeling QMD
 
-Our final step is to create a new data set that only contains the relevant variables we will be analyzing in order to trim down on excess variables. This data set will be used within our modeling QMD file.
-
-```{r}
-model_data <- dhi_data |>
-  select(
-    Diabetes, 
-    HighBP,
-    HighChol,
-    BMI,
-    Stroke,
-    PhysActivity,
-    HeartDisease
-    )
-```
+[Click here for the Modeling Page](Modeling.html)
 

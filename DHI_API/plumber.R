@@ -84,21 +84,25 @@ rf_wkflw <- workflow() |>
 rf_fit <- rf_wkflw |>
   fit(dhi_data)
 
+#* @apiTitle Diabetes Prediction API
+#* @apiDescription This API allows the end user to make predictions of diabetes status through interaction with a random forest model fitted onto the Diabetes Health Indicators Dataset.
 
-
-#* @apiTitle Plumber Example API
-#* @apiDescription Plumber example description.
-
-#* Diabetes Prediction API
-#* Accepts inputs and predicts the likelihood of diabetes
-#* @param HighBP Binary variable ("Yes" or "No")
-#* @param HighChol Binary variable ("Yes" or "No")
-#* @param BMI Numeric variable (e.g., 35.5)
-#* @param Stroke Binary variable ("Yes" or "No")
-#* @param PhysActivity Binary variable ("Yes" or "No")
-#* @param HeartDisease Binary variable ("Yes" or "No")
+#* Diabetes Prediction 
+#* Accepts inputs and predicts the status of diabetes as either "Yes" or "No"
+#* @param HighBP High Blood Pressure as Binary ("Yes" or "No"). Default: "No"
+#* @param HighChol High Cholesterol as Binary ("Yes" or "No"). Default: "No"
+#* @param BMI BMI as Numeric (e.g., 30). Default: 28.38
+#* @param Stroke Stroke at any point of life as Binary ("Yes" or "No"). Default: "No"
+#* @param PhysActivity Physical Activity in Last 30 days as Binary ("Yes" or "No"). Default: "Yes"
+#* @param HeartDisease Heart Disease as Binary ("Yes" or "No"). Default: "No"
 #* @post /predict
-function(HighBP, HighChol, BMI, Stroke, PhysActivity, HeartDisease) {
+function(HighBP = "No", 
+         HighChol = "No", 
+         BMI = 28.38, 
+         Stroke= "No", 
+         PhysActivity = "Yes", 
+         HeartDisease = "No"
+         ) {
   # Convert inputs into a data frame
   input <- data.frame(
     HighBP = factor(HighBP, levels = c("No", "Yes")),
@@ -121,28 +125,42 @@ function(HighBP, HighChol, BMI, Stroke, PhysActivity, HeartDisease) {
   list(prediction = prediction$.pred_class)
 }
 
-
-#* Echo back the input
-#* @param msg The message to echo
+#* Example Function Call
+#* @param msg Input Examples to see the three example function calls
 #* @get /echo
-function(msg = "") {
-    list(msg = paste0("The message is: '", msg, "'"))
+function(msg = "Examples") {
+    list(Example_1 = paste0("HighBP = Yes, HighChol = Yes, BMI = 20, Stroke = Yes, PhysicalActivity = Yes, HeartDisease = Yes, Prediction = No"),
+         Example_2 = paste0("HighBP = Yes, HighChol = Yes, BMI = 35, Stroke = Yes, PhysicalActivity = Yes, HeartDisease = Yes, Prediction = Yes"),
+         Example_3 = paste0("HighBP = No, HighChol = No, BMI = 40, Stroke = No, PhysicalActivity = Yes, HeartDisease = No, Prediction = No")
+         )
 }
 
-#* Plot a histogram
-#* @serializer png
-#* @get /plot
+#* Link to Github
+#* @get /info
 function() {
-    rand <- rnorm(100)
-    hist(rand)
+  list(
+    Author = "Mark Heinen",
+    Website = "insert URL"
+  )
 }
 
-#* Return the sum of two numbers
-#* @param a The first number to add
-#* @param b The second number to add
-#* @post /sum
-function(a, b) {
-    as.numeric(a) + as.numeric(b)
+#* Plotting the Random Forest Model Confusion matrix
+#* @serializer png
+#* @get /confusion
+function() {
+  # Grabbing the predictions from the model tested on the data set
+  rf_predictions <- rf_fit |>
+    predict(new_data = dhi_data) |>
+    bind_cols(dhi_data)
+    
+  # Creating a confusion matrix 
+  con_matrix <- rf_predictions |>
+    conf_mat(truth = Diabetes, estimate = .pred_class)
+  
+  # Plotting the confusion matrix
+  con_plot <- autoplot(con_matrix, type = "heatmap") +
+    ggtitle("Confusion Matrix")
+  print(con_plot)
 }
 
 # Programmatically alter your API
@@ -152,3 +170,4 @@ function(pr) {
         # Overwrite the default serializer to return unboxed JSON
         pr_set_serializer(serializer_unboxed_json())
 }
+

@@ -58,24 +58,61 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </style>
 
 
-<script src="EDA_files/libs/clipboard/clipboard.min.js"></script>
-<script src="EDA_files/libs/quarto-html/quarto.js"></script>
-<script src="EDA_files/libs/quarto-html/popper.min.js"></script>
-<script src="EDA_files/libs/quarto-html/tippy.umd.min.js"></script>
-<script src="EDA_files/libs/quarto-html/anchor.min.js"></script>
-<link href="EDA_files/libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="EDA_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
-<script src="EDA_files/libs/bootstrap/bootstrap.min.js"></script>
-<link href="EDA_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="EDA_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
 
 
 </head>
 
 <body class="fullcontent">
 
-<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
-
+<div id="quarto-search-results"></div>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    
+<!-- main -->
 <main class="content" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
@@ -161,26 +198,31 @@ dbl (22): Diabetes_binary, HighBP, HighChol, CholCheck, BMI, Smoker, Stroke,...
 <div class="cell">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Function to change binary variables into factors</span></span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>binary_creator <span class="ot">&lt;-</span> <span class="cf">function</span>(data){</span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Grabbing all binary cols</span></span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>binary_cols <span class="ot">&lt;-</span> <span class="fu">colnames</span>(data)[<span class="fu">sapply</span>(data, <span class="cf">function</span>(col) <span class="fu">all</span>(col <span class="sc">%in%</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>)))]</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Creating Binary cols</span></span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(var <span class="cf">in</span> <span class="fu">colnames</span>(data)){</span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span>(var <span class="sc">%in%</span> binary_cols){</span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>      data[[var]] <span class="ot">&lt;-</span> <span class="fu">factor</span>(data[[var]], <span class="at">levels =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1</span>), <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"No"</span>, <span class="st">"Yes"</span>))</span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(data)</span>
-<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Running function</span></span>
-<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>dhi_data <span class="ot">&lt;-</span> <span class="fu">binary_creator</span>(dhi_data)</span>
-<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Converting other factor variables </span></span>
-<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>dhi_data <span class="ot">&lt;-</span> dhi_data <span class="sc">|&gt;</span></span>
-<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">GenHlth =</span> <span class="fu">factor</span>(GenHlth, <span class="at">levels =</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">3</span>,<span class="dv">4</span>,<span class="dv">5</span>), <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"excellent"</span>, <span class="st">"very_good"</span>, <span class="st">"good"</span>, <span class="st">"fair"</span>, <span class="st">"poor"</span>)),</span>
-<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">Education =</span> <span class="fu">factor</span>(Education, <span class="at">levels =</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">3</span>,<span class="dv">4</span>,<span class="dv">5</span>,<span class="dv">6</span>), <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"no_schooling"</span>, <span class="st">"1_to_8"</span>, <span class="st">"9_to_11"</span>, <span class="st">"12_or_GED"</span>, <span class="st">"some_college"</span>, <span class="st">"college_grad"</span>)),</span>
-<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">Income =</span> <span class="fu">factor</span>(Income, <span class="at">levels =</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">3</span>,<span class="dv">4</span>,<span class="dv">5</span>,<span class="dv">6</span>,<span class="dv">7</span>,<span class="dv">8</span>), <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"10k_less"</span>, <span class="st">"15k_less"</span>, <span class="st">"20k_less"</span>, <span class="st">"25k_less"</span>, <span class="st">"35k_less"</span>, <span class="st">"50k_less"</span>, <span class="st">"75k_less"</span>, <span class="st">"75k_more"</span>))</span>
-<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Grabbing all binary cols</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  binary_cols <span class="ot">&lt;-</span> <span class="fu">colnames</span>(data)[<span class="fu">sapply</span>(data, <span class="cf">function</span>(col) <span class="fu">all</span>(col <span class="sc">%in%</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>)))]</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># removing sex from binary_cols</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  binary_cols <span class="ot">&lt;-</span> <span class="fu">setdiff</span>(binary_cols, <span class="st">"Sex"</span>)</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Creating Binary cols</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(var <span class="cf">in</span> <span class="fu">colnames</span>(data)){</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span>(var <span class="sc">%in%</span> binary_cols){</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>      data[[var]] <span class="ot">&lt;-</span> <span class="fu">factor</span>(data[[var]], <span class="at">levels =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1</span>), <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"No"</span>, <span class="st">"Yes"</span>))</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(data)</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Running function</span></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>dhi_data <span class="ot">&lt;-</span> <span class="fu">binary_creator</span>(dhi_data)</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a><span class="co"># Converting other factor variables </span></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>dhi_data <span class="ot">&lt;-</span> dhi_data <span class="sc">|&gt;</span></span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">Sex =</span> <span class="fu">factor</span>(Sex, <span class="at">levels =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1</span>), <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"female"</span>, <span class="st">"male"</span>)),</span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">GenHlth =</span> <span class="fu">factor</span>(GenHlth, <span class="at">levels =</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">3</span>,<span class="dv">4</span>,<span class="dv">5</span>), <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"excellent"</span>, <span class="st">"very_good"</span>, <span class="st">"good"</span>, <span class="st">"fair"</span>, <span class="st">"poor"</span>)),</span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>    <span class="at">Education =</span> <span class="fu">factor</span>(Education, <span class="at">levels =</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">3</span>,<span class="dv">4</span>,<span class="dv">5</span>,<span class="dv">6</span>), <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"no_schooling"</span>, <span class="st">"1_to_8"</span>, <span class="st">"9_to_11"</span>, <span class="st">"12_or_GED"</span>, <span class="st">"some_college"</span>, <span class="st">"college_grad"</span>)),</span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>    <span class="at">Income =</span> <span class="fu">factor</span>(Income, <span class="at">levels =</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">3</span>,<span class="dv">4</span>,<span class="dv">5</span>,<span class="dv">6</span>,<span class="dv">7</span>,<span class="dv">8</span>), <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"10k_less"</span>, <span class="st">"15k_less"</span>, <span class="st">"20k_less"</span>, <span class="st">"25k_less"</span>, <span class="st">"35k_less"</span>, <span class="st">"50k_less"</span>, <span class="st">"75k_less"</span>, <span class="st">"75k_more"</span>))</span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Now I am going to rename a few columns in order to make using them easier in terms of referencing them in the code.</p>
 <div class="cell">
@@ -370,11 +412,262 @@ $Age
 </div>
 </div>
 </div>
+<p>The graphs confirm our (fill out more later)</p>
+<p>The next step is going to be to create some contingency tables comparing counts of the variables to the diabetes status, we can make a function that will do this for each variable we have turned into a factor.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Function to create two way contingency tables</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>TwoWayMaker <span class="ot">&lt;-</span> <span class="cf">function</span>(data, <span class="at">var1 =</span> <span class="st">"Diabetes"</span>){</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Selecting factors</span></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>  fct_vars <span class="ot">&lt;-</span> data <span class="sc">|&gt;</span></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(<span class="fu">where</span>(is.factor)) <span class="sc">|&gt;</span></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(<span class="sc">-</span><span class="fu">all_of</span>(var1))</span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Creating empty list to store tables</span></span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>  fct_list <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a>  <span class="co"># create for loop of factor vars</span></span>
+<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(fct_var <span class="cf">in</span> <span class="fu">colnames</span>(fct_vars)){</span>
+<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a>    <span class="co">#Create contingency tables</span></span>
+<span id="cb20-16"><a href="#cb20-16" aria-hidden="true" tabindex="-1"></a>    fct_tables <span class="ot">&lt;-</span> <span class="fu">table</span>(data[[var1]], data[[fct_var]])</span>
+<span id="cb20-17"><a href="#cb20-17" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb20-18"><a href="#cb20-18" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Create proper names for tables</span></span>
+<span id="cb20-19"><a href="#cb20-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">dimnames</span>(fct_tables) <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">Diabetes =</span> <span class="fu">levels</span>(data[[var1]]),</span>
+<span id="cb20-20"><a href="#cb20-20" aria-hidden="true" tabindex="-1"></a>                                 <span class="at">fct_var =</span> <span class="fu">levels</span>(data[[fct_var]]))</span>
+<span id="cb20-21"><a href="#cb20-21" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb20-22"><a href="#cb20-22" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Store table in list</span></span>
+<span id="cb20-23"><a href="#cb20-23" aria-hidden="true" tabindex="-1"></a>    fct_list[[fct_var]] <span class="ot">&lt;-</span> fct_tables</span>
+<span id="cb20-24"><a href="#cb20-24" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb20-25"><a href="#cb20-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(fct_list)</span>
+<span id="cb20-26"><a href="#cb20-26" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb20-27"><a href="#cb20-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-28"><a href="#cb20-28" aria-hidden="true" tabindex="-1"></a>TwoWayTables <span class="ot">&lt;-</span> <span class="fu">TwoWayMaker</span>(dhi_data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>I also want to see the tables as proportions, so lets modify the function in order to do so. Of important note I am going to be using margin = 2 to compare across columns, as that will make the data display as the total percent for each level (column in the table) of a factor rather than against the whole dataset.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Function to create two way contingency tables</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>TwoWayMaker_percent <span class="ot">&lt;-</span> <span class="cf">function</span>(data, <span class="at">var1 =</span> <span class="st">"Diabetes"</span>){</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Selecting factors</span></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>  fct_vars <span class="ot">&lt;-</span> data <span class="sc">|&gt;</span></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(<span class="fu">where</span>(is.factor)) <span class="sc">|&gt;</span></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(<span class="sc">-</span><span class="fu">all_of</span>(var1))</span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Creating empty list to store tables</span></span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>  fct_list <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a>  <span class="co"># create for loop of factor vars</span></span>
+<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(fct_var <span class="cf">in</span> <span class="fu">colnames</span>(fct_vars)){</span>
+<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a>    <span class="co">#Create contingency tables</span></span>
+<span id="cb21-16"><a href="#cb21-16" aria-hidden="true" tabindex="-1"></a>    fct_tables <span class="ot">&lt;-</span> <span class="fu">table</span>(data[[var1]], data[[fct_var]])</span>
+<span id="cb21-17"><a href="#cb21-17" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb21-18"><a href="#cb21-18" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Converting to percents</span></span>
+<span id="cb21-19"><a href="#cb21-19" aria-hidden="true" tabindex="-1"></a>    fct_tables <span class="ot">&lt;-</span> <span class="fu">prop.table</span>(fct_tables, <span class="at">margin =</span> <span class="dv">2</span>) <span class="sc">*</span> <span class="dv">100</span></span>
+<span id="cb21-20"><a href="#cb21-20" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb21-21"><a href="#cb21-21" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Create proper names for tables</span></span>
+<span id="cb21-22"><a href="#cb21-22" aria-hidden="true" tabindex="-1"></a>    <span class="fu">dimnames</span>(fct_tables) <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">Diabetes =</span> <span class="fu">levels</span>(data[[var1]]),</span>
+<span id="cb21-23"><a href="#cb21-23" aria-hidden="true" tabindex="-1"></a>                                 <span class="at">fct_var =</span> <span class="fu">levels</span>(data[[fct_var]]))</span>
+<span id="cb21-24"><a href="#cb21-24" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb21-25"><a href="#cb21-25" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Store table in list</span></span>
+<span id="cb21-26"><a href="#cb21-26" aria-hidden="true" tabindex="-1"></a>    fct_list[[fct_var]] <span class="ot">&lt;-</span> fct_tables</span>
+<span id="cb21-27"><a href="#cb21-27" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb21-28"><a href="#cb21-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(fct_list)</span>
+<span id="cb21-29"><a href="#cb21-29" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb21-30"><a href="#cb21-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-31"><a href="#cb21-31" aria-hidden="true" tabindex="-1"></a>TwoWayTables_percent <span class="ot">&lt;-</span> <span class="fu">TwoWayMaker_percent</span>(dhi_data)</span>
+<span id="cb21-32"><a href="#cb21-32" aria-hidden="true" tabindex="-1"></a>TwoWayTables_percent</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>$HighBP
+        fct_var
+Diabetes        No       Yes
+     No  93.964833 75.554310
+     Yes  6.035167 24.445690
+
+$HighChol
+        fct_var
+Diabetes        No       Yes
+     No  92.018564 77.985147
+     Yes  7.981436 22.014853
+
+$CholCheck
+        fct_var
+Diabetes        No       Yes
+     No  97.455121 85.625077
+     Yes  2.544879 14.374923
+
+$Smoker
+        fct_var
+Diabetes       No      Yes
+     No  87.94467 83.70707
+     Yes 12.05533 16.29293
+
+$Stroke
+        fct_var
+Diabetes       No      Yes
+     No  86.82022 68.24718
+     Yes 13.17978 31.75282
+
+$HeartDisease
+        fct_var
+Diabetes       No      Yes
+     No  88.04632 67.02800
+     Yes 11.95368 32.97200
+
+$PhysActivity
+        fct_var
+Diabetes       No      Yes
+     No  78.85525 88.38735
+     Yes 21.14475 11.61265
+
+$Fruits
+        fct_var
+Diabetes       No      Yes
+     No  84.20707 87.13906
+     Yes 15.79293 12.86094
+
+$Veggies
+        fct_var
+Diabetes       No      Yes
+     No  82.00213 87.01133
+     Yes 17.99787 12.98867
+
+$HvyAlch
+        fct_var
+Diabetes        No       Yes
+     No  85.584570 94.163861
+     Yes 14.415430  5.836139
+
+$Healthcare
+        fct_var
+Diabetes       No      Yes
+     No  88.54796 85.93900
+     Yes 11.45204 14.06100
+
+$NoDoc
+        fct_var
+Diabetes       No      Yes
+     No  86.39670 82.47635
+     Yes 13.60330 17.52365
+
+$GenHlth
+        fct_var
+Diabetes excellent very_good      good      fair      poor
+     No  97.483388 92.837098 82.210560 68.989547 62.105786
+     Yes  2.516612  7.162902 17.789440 31.010453 37.894214
+
+$DiffWalk
+        fct_var
+Diabetes       No      Yes
+     No  89.46707 69.25366
+     Yes 10.53293 30.74634
+
+$Sex
+        fct_var
+Diabetes   female     male
+     No  87.03213 84.83967
+     Yes 12.96787 15.16033
+
+$Education
+        fct_var
+Diabetes no_schooling    1_to_8   9_to_11 12_or_GED some_college college_grad
+     No     72.988506 70.739550 75.775480 82.364940    85.189529    90.309807
+     Yes    27.011494 29.260450 24.224520 17.635060    14.810471     9.690193
+
+$Income
+        fct_var
+Diabetes  10k_less  15k_less  20k_less  25k_less  35k_less  50k_less  75k_less
+     No  75.710937 73.809726 77.691634 79.865905 82.598617 85.492185 87.817858
+     Yes 24.289063 26.190274 22.308366 20.134095 17.401383 14.507815 12.182142
+        fct_var
+Diabetes  75k_more
+     No  92.039608
+     Yes  7.960392</code></pre>
+</div>
+</div>
+<p>Some notable things can be gleamed from these proportion tables, with HighBP, HighChol, Stroke, HeartDisease, PhysActivity, HvyAlch, DiffWalk, Education, and Income being the most interesting variables. A much higher proportion of individuals with High BP had diabetes than individuals with normal BP (24.45% to 6.04 %), a similar occurrence is seen in individuals with high cholesterol (22.015% to 7.98%), individuals who have had a stroke (31.75% to 13.18%), individuals with heart disease (32.97% to 11.95%), and individuals with difficulty walking (30.74% to 10.53%). Individuals who were physically active in the last 30 days had a lower proportion of diabetes (11.61% to 21.14%), Individuals with higher levels of education had a lower proportion of diabetes (9.69% for college grads to 27.01% for those with no schooling), and individuals with higher incomes had a lower proprtion of diabets (7.96% for those who make 75k or more to 24.28% for those who make less than 10k)</p>
+<p>The most striking variable has to be that individuals with heavy alcohol usage had an over two times lower rate of diabetes than individuals who do not heavily use alcohol (5.84% t0 12.97%), which may indicate that their are some confounding factors in the data. As research has indicated that heavy alcohol usage found to be correlated with Type Two Diabetes, but this could also be due to the limited option of the response as data has also shown moderate alcohol usage is negatively correlated with Type two diabetes.</p>
+<p>In order to keep this analysis from getting out of hands I am going to choose only 5 categorical variables to plot (bar plots), as I shall be using those alongside BMI to create a model in another document. The 5 variables I am going to choose are HighBp, HighChol, Stroke, PhysActivity, and HeartDisease. As these are all variables that may be correlated with one another.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Creating faceit box plots</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(dhi_data, <span class="fu">aes</span>(<span class="at">x =</span> HighBP)) <span class="sc">+</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>() <span class="sc">+</span></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="st">"BP by Diabetes Status"</span>) <span class="sc">+</span></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">"High BP Yes or No"</span>) <span class="sc">+</span></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>Diabetes, <span class="at">scales =</span> <span class="st">"free_y"</span>) <span class="sc">+</span> <span class="co"># Making graphs the same scale to aid comparison</span></span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">expand =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="EDA_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(dhi_data, <span class="fu">aes</span>(<span class="at">x =</span> HighChol)) <span class="sc">+</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>() <span class="sc">+</span></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="st">"Cholesterol by Diabetes Status"</span>) <span class="sc">+</span></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">"High Cholesterol Yes or No"</span>) <span class="sc">+</span></span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>Diabetes, <span class="at">scales =</span> <span class="st">"free_y"</span>) <span class="sc">+</span> <span class="co"># Making graphs the same scale to aid comparison</span></span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">expand =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="EDA_files/figure-html/unnamed-chunk-10-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(dhi_data, <span class="fu">aes</span>(<span class="at">x =</span> Stroke)) <span class="sc">+</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>() <span class="sc">+</span></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="st">"Stroke by Diabetes Status"</span>) <span class="sc">+</span></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">"Ever had a stroke Yes or No"</span>) <span class="sc">+</span></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>Diabetes, <span class="at">scales =</span> <span class="st">"free_y"</span>) <span class="sc">+</span> <span class="co"># Making graphs the same scale to aid comparison</span></span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">expand =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="EDA_files/figure-html/unnamed-chunk-10-3.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(dhi_data, <span class="fu">aes</span>(<span class="at">x =</span> PhysActivity)) <span class="sc">+</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>() <span class="sc">+</span></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="st">"Physical Activity by Diabetes Status"</span>) <span class="sc">+</span></span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">"Any Physical Activity in the Last 30 days Yes or No"</span>) <span class="sc">+</span></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>Diabetes, <span class="at">scales =</span> <span class="st">"free_y"</span>) <span class="sc">+</span> <span class="co"># Making graphs the same scale to aid comparison</span></span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">expand =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="EDA_files/figure-html/unnamed-chunk-10-4.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(dhi_data, <span class="fu">aes</span>(<span class="at">x =</span> HeartDisease)) <span class="sc">+</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>() <span class="sc">+</span></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="st">"Heart Disease by Diabetes Status"</span>) <span class="sc">+</span></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">"Heart Disease Yes or No"</span>) <span class="sc">+</span></span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>Diabetes, <span class="at">scales =</span> <span class="st">"free_y"</span>) <span class="sc">+</span> <span class="co"># Making graphs the same scale to aid comparison</span></span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">expand =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="EDA_files/figure-html/unnamed-chunk-10-5.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>These plots help us visualize the previously discussed proportions we found in the contigency tables, with Physical Activity (Yes) showing to have a higher proportion of No diabetes, while all other variables when present (Yes) are shown to have higher proportions of diabetes.</p>
 </section>
+</section>
+<section id="link-to-modeling-qmd" class="level2">
+<h2 class="anchored" data-anchor-id="link-to-modeling-qmd">Link to Modeling QMD</h2>
+<p><a href="Modeling.html">Click here for the Modeling Page</a></p>
+
+
 </section>
 
-</main>
-<!-- /main column -->
+</main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {
